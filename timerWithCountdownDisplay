@@ -1,0 +1,50 @@
+import time
+import tkinter as tk
+from tkinter import simpledialog, messagebox
+import subprocess
+import threading
+
+def play_sound():
+    # Play a sound using afplay
+    for _ in range(5):
+        subprocess.call(['afplay', '/System/Library/Sounds/Ping.aiff'])
+
+def show_popup(root):
+    # Show the popup message
+    messagebox.showinfo("Time's Up", "The timer has ended!")
+    root.destroy()
+
+def update_timer_label(label, remaining_time):
+    if remaining_time >= 0:
+        mins, secs = divmod(remaining_time, 60)
+        time_str = f'{mins:02}:{secs:02}'
+        label.config(text=time_str)
+        label.after(1000, update_timer_label, label, remaining_time - 1)
+    else:
+        # Start the sound thread
+        sound_thread = threading.Thread(target=play_sound)
+        sound_thread.start()
+        # Show the popup
+        show_popup(label.master)
+
+def start_timer():
+    # Initialize the main window
+    root = tk.Tk()
+    root.title("Timer")
+    root.geometry("200x100")
+    
+    # Ask the user for the timer duration
+    timer_duration = simpledialog.askinteger("Input", "Enter the timer duration in seconds:", minvalue=1, parent=root)
+
+    if timer_duration:
+        # Create and place the timer label
+        timer_label = tk.Label(root, text="", font=('Helvetica', 48))
+        timer_label.pack(expand=True)
+
+        # Start the countdown
+        update_timer_label(timer_label, timer_duration)
+
+        root.mainloop()
+
+if __name__ == "__main__":
+    start_timer()
